@@ -100,8 +100,9 @@ function App() {
   // Encoding phase state
   const [statements, setStatements] = useState([]);
   const [currentStatementIndex, setCurrentStatementIndex] = useState(0);
-  const [typedText, setTypedText] = useState('');
   const [encodingData, setEncodingData] = useState([]);
+  const [readingStartTime, setReadingStartTime] = useState(null);
+  const [showContinueButton, setShowContinueButton] = useState(false);
   
   // Distractor phase state
   const [distractorTimeLeft, setDistractorTimeLeft] = useState(120);
@@ -116,6 +117,8 @@ function App() {
   const [recognitionItems, setRecognitionItems] = useState([]);
   const [currentRecognitionIndex, setCurrentRecognitionIndex] = useState(0);
   const [recognitionResponses, setRecognitionResponses] = useState([]);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
   
   // Location memory phase state
   const [locationItems, setLocationItems] = useState([]);
@@ -187,21 +190,39 @@ function App() {
     }
   }, [phase, currentStatementIndex, currentRecognitionIndex]);
 
-  // Handle statement typing submission
+  // Handle reading timer for encoding phase
+  useEffect(() => {
+    if (phase === PHASES.ENCODING && readingStartTime) {
+      const timer = setTimeout(() => {
+        setShowContinueButton(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, readingStartTime]);
+
+  // Reset reading state when moving to new statement
+  useEffect(() => {
+    if (phase === PHASES.ENCODING) {
+      setReadingStartTime(Date.now());
+      setShowContinueButton(false);
+    }
+  }, [phase, currentStatementIndex]);
+
+  // Handle statement reading submission (mobile-friendly)
   const handleStatementSubmit = () => {
     const currentStatement = statements[currentStatementIndex];
+    const readingTime = Date.now() - readingStartTime;
     setEncodingData(prev => [...prev, {
       statementId: currentStatement.id,
       statement: currentStatement.text,
       condition: currentStatement.condition,
       folder: currentStatement.folder,
-      typed: typedText,
+      readingTime,
       timestamp: Date.now()
     }]);
-    
+
     if (currentStatementIndex < statements.length - 1) {
       setCurrentStatementIndex(i => i + 1);
-      setTypedText('');
     } else {
       setPhase(PHASES.DISTRACTOR);
       setMathProblem(generateMathProblem());
@@ -340,7 +361,7 @@ function App() {
     }
   }, [stroopTrials, currentStroopIndex, stroopStartTime, phase, currentQuestionIndex]);
 
-  // Keyboard handler for Stroop
+  // Keyboard handler for Stroop (kept for desktop support)
   useEffect(() => {
     if ((phase === PHASES.STROOP_HARD || phase === PHASES.STROOP_EASY) && !showingQuestion) {
       const handleKeyPress = (e) => {
@@ -354,6 +375,36 @@ function App() {
       return () => window.removeEventListener('keydown', handleKeyPress);
     }
   }, [phase, showingQuestion, handleStroopResponse]);
+
+  // Handle touch/swipe for recognition
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStartX || !touchStartY) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // Only recognize horizontal swipes (more horizontal than vertical)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        // Swipe right = Yes
+        handleRecognitionResponse(true);
+      } else {
+        // Swipe left = No
+        handleRecognitionResponse(false);
+      }
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+  };
 
   // Calculate results
   const calculateResults = () => {
@@ -516,43 +567,41 @@ function App() {
   const renderEncoding = () => {
     const currentStatement = statements[currentStatementIndex];
     if (!currentStatement) return null;
-    
+
     return (
       <div className="phase-container encoding">
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${((currentStatementIndex + 1) / statements.length) * 100}%` }}
           />
         </div>
         <p className="progress-text">Statement {currentStatementIndex + 1} of {statements.length}</p>
-        
+
         <div className="statement-display">
           <p className="statement-text">{currentStatement.text}</p>
         </div>
-        
+
         <div className={`condition-badge ${currentStatement.condition}`}>
-          {currentStatement.condition === 'saved' 
+          {currentStatement.condition === 'saved'
             ? `📁 This will be SAVED to folder: ${currentStatement.folder}`
             : '🗑️ This will be DELETED'}
         </div>
-        
+
         <div className="input-section">
-          <p className="instruction">Type the statement below:</p>
-          <textarea
-            ref={inputRef}
-            value={typedText}
-            onChange={(e) => setTypedText(e.target.value)}
-            placeholder="Type the statement here..."
-            rows={3}
-          />
-          <button 
+          <p className="instruction">Read this statement carefully</p>
+          <button
             className="primary-btn"
             onClick={handleStatementSubmit}
-            disabled={typedText.trim().length < 10}
+            disabled={!showContinueButton}
           >
-            Next →
+            {showContinueButton ? 'Continue →' : 'Reading...'}
           </button>
+          {!showContinueButton && (
+            <p className="instruction" style={{ marginTop: '10px', fontSize: '0.9rem', opacity: 0.7 }}>
+              Button will activate in a moment
+            </p>
+          )}
         </div>
       </div>
     );
@@ -607,35 +656,41 @@ function App() {
   const renderRecognition = () => {
     const item = recognitionItems[currentRecognitionIndex];
     if (!item) return null;
-    
+
     return (
-      <div className="phase-container recognition">
+      <div
+        className="phase-container recognition"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${((currentRecognitionIndex + 1) / recognitionItems.length) * 100}%` }}
           />
         </div>
         <p className="progress-text">Item {currentRecognitionIndex + 1} of {recognitionItems.length}</p>
-        
+
         <h2>Did you see this statement?</h2>
-        
+
         <div className="statement-display recognition-item">
           <p className="statement-text">"{item.text}"</p>
         </div>
-        
+
+        <p className="swipe-hint">Swipe left for No, right for Yes</p>
+
         <div className="response-buttons">
-          <button 
-            className="response-btn yes"
-            onClick={() => handleRecognitionResponse(true)}
-          >
-            ✓ Yes, I saw this
-          </button>
-          <button 
+          <button
             className="response-btn no"
             onClick={() => handleRecognitionResponse(false)}
           >
-            ✗ No, this is new
+            ← No, this is new
+          </button>
+          <button
+            className="response-btn yes"
+            onClick={() => handleRecognitionResponse(true)}
+          >
+            Yes, I saw this →
           </button>
         </div>
       </div>
@@ -682,21 +737,21 @@ function App() {
   const renderStroopIntro = () => (
     <div className="phase-container stroop-intro">
       <h2>🎨 Color Naming Task</h2>
-      
+
       <div className="info-box">
         <h3>Instructions</h3>
         <p>You'll see words appear in <span style={{color: 'red'}}>RED</span> or <span style={{color: 'blue'}}>BLUE</span>.</p>
-        <p>Your task: <strong>Name the COLOR of the word as quickly as possible.</strong></p>
+        <p>Your task: <strong>Tap the COLOR of the word as quickly as possible.</strong></p>
         <p>Ignore what the word says — only respond to its color!</p>
-        
+
         <div className="key-instructions">
-          <p>Press <kbd>E</kbd> for <span style={{color: 'blue'}}>BLUE</span></p>
-          <p>Press <kbd>I</kbd> for <span style={{color: 'red'}}>RED</span></p>
+          <p><strong>Tap LEFT side</strong> for <span style={{color: 'blue'}}>BLUE</span></p>
+          <p><strong>Tap RIGHT side</strong> for <span style={{color: 'red'}}>RED</span></p>
         </div>
-        
+
         <p>Before some trials, you'll answer a trivia question. Just answer yes/no based on your best guess.</p>
       </div>
-      
+
       <button className="primary-btn" onClick={startStroopHard}>
         Start Color Naming →
       </button>
@@ -705,16 +760,16 @@ function App() {
 
   const renderStroop = () => {
     const questions = phase === PHASES.STROOP_HARD ? HARD_QUESTIONS : EASY_QUESTIONS;
-    
+
     if (showingQuestion) {
       return (
         <div className="phase-container stroop">
           <p className="phase-label">{phase === PHASES.STROOP_HARD ? 'Block 1: Hard Questions' : 'Block 2: Easy Questions'}</p>
-          
+
           <div className="question-display">
             <p className="question-text">{questions[currentQuestionIndex]}</p>
           </div>
-          
+
           <div className="response-buttons">
             <button className="response-btn" onClick={handleQuestionAnswer}>Yes</button>
             <button className="response-btn" onClick={handleQuestionAnswer}>No</button>
@@ -723,22 +778,37 @@ function App() {
         </div>
       );
     }
-    
+
     const trial = stroopTrials[currentStroopIndex];
     if (!trial) return null;
-    
+
     return (
-      <div className="phase-container stroop">
+      <div className="phase-container stroop-task">
         <p className="phase-label">{phase === PHASES.STROOP_HARD ? 'Block 1' : 'Block 2'}</p>
         <p className="progress-text">Trial {currentStroopIndex + 1} of {stroopTrials.length}</p>
-        
-        <div className="stroop-word" style={{ color: trial.color }}>
-          {trial.word}
+
+        <div className="stroop-tap-zones">
+          <div
+            className="tap-zone blue-zone"
+            onClick={() => handleStroopResponse('blue')}
+          >
+            <div className="stroop-word" style={{ color: trial.color }}>
+              {trial.word}
+            </div>
+          </div>
+          <div
+            className="tap-zone red-zone"
+            onClick={() => handleStroopResponse('red')}
+          >
+            <div className="stroop-word" style={{ color: trial.color }}>
+              {trial.word}
+            </div>
+          </div>
         </div>
-        
-        <div className="key-reminder">
-          <span><kbd>E</kbd> = Blue</span>
-          <span><kbd>I</kbd> = Red</span>
+
+        <div className="tap-hint">
+          <span>← Tap left for BLUE</span>
+          <span>Tap right for RED →</span>
         </div>
       </div>
     );
