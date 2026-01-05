@@ -2,6 +2,8 @@
 
 A self-experiment to measure the **Google Effect** — how knowing you can look things up changes how you remember them.
 
+**Try it live: [https://google-effect.netlify.app](https://google-effect.netlify.app)**
+
 Based on Sparrow, Liu & Wegner (2011) "Google Effects on Memory: Cognitive Consequences of Having Information at Our Fingertips" published in *Science*.
 
 ## What It Tests
