@@ -1,16 +1,12 @@
 {
   "name": "google-effect-test",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "The Personal Offloading Test - A self-experiment on the Google Effect",
   "private": true,
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.1",
-    "@testing-library/user-event": "^13.5.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -20,8 +16,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
@@ -35,5 +30,15 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": ".",
+  "keywords": [
+    "google-effect",
+    "cognitive-science",
+    "memory",
+    "self-experiment",
+    "psychology"
+  ],
+  "author": "Personal Science Week",
+  "license": "MIT"
 }

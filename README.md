@@ -1,70 +1,82 @@
-# Getting Started with Create React App
+# The Personal Offloading Test
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A self-experiment to measure the **Google Effect** — how knowing you can look things up changes how you remember them.
 
-## Available Scripts
+Based on Sparrow, Liu & Wegner (2011) "Google Effects on Memory: Cognitive Consequences of Having Information at Our Fingertips" published in *Science*.
 
-In the project directory, you can run:
+## What It Tests
 
-### `npm start`
+1. **Offloading Effect**: Do you remember "deleted" information better than "saved" information?
+2. **Location Memory**: Do you remember WHERE information was stored better than WHAT it contained?
+3. **Google Stroop Effect**: After hard trivia questions, do tech-related words (Google, ChatGPT, etc.) interfere with your thinking more than neutral words?
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Time Required
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+~15 minutes
 
-### `npm test`
+## Deployment to Netlify
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Option 1: Deploy from GitHub
 
-### `npm run build`
+1. Push this folder to a GitHub repository
+2. Go to [Netlify](https://app.netlify.com)
+3. Click "Add new site" → "Import an existing project"
+4. Connect to your GitHub repository
+5. Build settings will auto-detect from `netlify.toml`
+6. Click "Deploy"
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Option 2: Manual Deploy
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Install dependencies: `npm install`
+2. Build: `npm run build`
+3. Drag the `build` folder to Netlify's deploy drop zone
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Option 3: Netlify CLI
 
-### `npm run eject`
+```bash
+npm install -g netlify-cli
+npm install
+npm run build
+netlify deploy --prod
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Local Development
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm install
+npm start
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Opens at http://localhost:3000
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Data Output
 
-## Learn More
+Results are downloadable as JSON with:
+- Free recall performance (saved vs. deleted items)
+- Recognition memory (hit rates, false alarm rates)
+- Location memory accuracy
+- Stroop reaction times (tech words vs. neutral words, after hard vs. easy questions)
+- Calculated "Google Effect" coefficient
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Scientific Background
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The original Sparrow et al. (2011) study found:
+- People remember less when they expect information to be saved
+- People remember WHERE to find information better than the information itself
+- Hard trivia questions prime thoughts about computers/internet
 
-### Code Splitting
+**Note**: The "Google Stroop" effect failed to replicate in a 2018 Nature study. The save/delete memory effects have been more robust across replications.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## License
 
-### Analyzing the Bundle Size
+MIT
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Citation
 
-### Making a Progressive Web App
+If you use this for research or writing:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+Personal Offloading Test. Based on: Sparrow, B., Liu, J., & Wegner, D. M. (2011). 
+Google effects on memory: Cognitive consequences of having information at our fingertips. 
+Science, 333(6043), 776-778.
+```
