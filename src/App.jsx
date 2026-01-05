@@ -359,6 +359,7 @@ function App() {
         calculateResults();
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stroopTrials, currentStroopIndex, stroopStartTime, phase, currentQuestionIndex]);
 
   // Keyboard handler for Stroop (kept for desktop support)
